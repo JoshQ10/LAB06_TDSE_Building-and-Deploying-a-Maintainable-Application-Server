@@ -1,0 +1,5 @@
+package co.edu.escuelaing.webframework;
+
+interface WebService {
+    public void call();
+}
