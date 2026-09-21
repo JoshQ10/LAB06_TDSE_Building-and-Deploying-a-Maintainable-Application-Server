@@ -1,0 +1,34 @@
+# systemd unit for running the Lab06 application server as a managed
+# background service on an EC2 instance. Copy to /etc/systemd/system/,
+# adjust User/WorkingDirectory/port to match the target machine, then:
+#
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now lab06-webframework
+#   sudo systemctl status lab06-webframework
+#   journalctl -u lab06-webframework -f      # follow logs
+#   sudo systemctl stop lab06-webframework   # clean shutdown
+#
+# See README.md "Cloud deployment (AWS)" for the full procedure.
+#
+# APP_ENV=production disables the /shutdown route — do not change this
+# on a publicly reachable instance.
+
+[Unit]
+Description=Lab06 sequential application server (webframework)
+After=network.target
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory=/opt/lab06
+Environment=PORT=8080
+Environment=APP_ENV=production
+Environment=GREETING_PREFIX=Hello
+ExecStart=/usr/bin/java -jar /opt/lab06/lab06-webframework.jar
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/opt/lab06/logs/lab06.log
+StandardError=append:/opt/lab06/logs/lab06.log
+
+[Install]
+WantedBy=multi-user.target
