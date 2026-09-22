@@ -458,3 +458,20 @@ the screenshots/output directly into this section:
 ## Author
 
 Author: Joshua (student, TDSE course).
+
+Evidences (pcitures)
+java install: <img width="2518" height="1148" alt="image" src="https://github.com/user-attachments/assets/3f46ce9e-2565-497c-a793-c2ace199e3d8" />
+pasar el .jar: <img width="2147" height="324" alt="image" src="https://github.com/user-attachments/assets/b82e3005-7565-40bd-a88f-d78054e57d0b" />
+prueba de que el archivo .jar llego a la instancia: <img width="817" height="147" alt="image" src="https://github.com/user-attachments/assets/ab620017-a584-4f23-8118-1b4b4133a742" />
+entrando a la instancia desde powershell: <img width="2165" height="282" alt="image" src="https://github.com/user-attachments/assets/27fb24f5-8311-4824-95c5-baf482c48481" />
+instalacion y activacion del servicio: <img width="1323" height="308" alt="image" src="https://github.com/user-attachments/assets/f862faf2-870d-49ff-b386-862f5bd9d8d9" />
+verificacion en local de la instancia: <img width="943" height="309" alt="image" src="https://github.com/user-attachments/assets/a1b433d1-c237-4c7e-9971-e89fe4fa1cbc" />
+actualizacion del nuev archiv .jar y reactivacion del servicio debido a una falla con la URL que no reconocia la pagina: <img width="2156" height="359" alt="image" src="https://github.com/user-attachments/assets/e841899b-ee49-4429-acd9-547342baf532" />
+prueba pagina funcionando: <img width="1758" height="1278" alt="image" src="https://github.com/user-attachments/assets/d107a16f-caca-430c-9759-7811fede37ed" />
+prueba recurso estatico: <img width="2020" height="1058" alt="image" src="https://github.com/user-attachments/assets/d57fbd67-24aa-4690-8ab1-66c6f34ce8da" />
+prueba endpoints REST: <img width="2072" height="724" alt="image" src="https://github.com/user-attachments/assets/24acb7da-790d-45c9-9fbc-97447948329c" />
+prueba shutdown bloqueado: <img width="2001" height="85" alt="image" src="https://github.com/user-attachments/assets/988a0b17-7ec6-4c8f-8f06-ddd77305e53e" />
+evidencia variables de entorno sin exponer secretos: <img width="701" height="67" alt="image" src="https://github.com/user-attachments/assets/36e6c29d-2b06-4007-a478-ef61847b5a94" />
+detenemos la instancia: <img width="673" height="45" alt="image" src="https://github.com/user-attachments/assets/472d512d-fb4f-4b44-80b2-7a33ec8988f6" />
+eliminar instancia: <img width="835" height="453" alt="image" src="https://github.com/user-attachments/assets/fd56ff1a-1ed9-4ed0-929b-f1fb616fa75c" />
+eliminar security group: <img width="869" height="198" alt="image" src="https://github.com/user-attachments/assets/b1c20511-bf30-4c39-9710-3f9a525d4e8e" />
