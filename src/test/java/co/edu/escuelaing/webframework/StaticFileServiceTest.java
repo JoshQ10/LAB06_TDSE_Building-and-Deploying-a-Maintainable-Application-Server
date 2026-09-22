@@ -43,4 +43,15 @@ class StaticFileServiceTest {
         assertEquals("application/javascript; charset=UTF-8", StaticFileService.contentTypeFor("/app.js"));
         assertEquals("image/png", StaticFileService.contentTypeFor("/images/logo.png"));
     }
+
+    @Test
+    void resolvesTheRootPathToIndexHtmlForContentTypePurposes() {
+        // Regression test: the content type must be computed from the
+        // resolved file name, not the raw "/" request path, or browsers
+        // download the page instead of rendering it.
+        String resolved = service.resolvePath("/");
+
+        assertEquals("index.html", resolved);
+        assertEquals("text/html; charset=UTF-8", StaticFileService.contentTypeFor(resolved));
+    }
 }

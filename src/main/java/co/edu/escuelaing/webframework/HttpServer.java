@@ -109,10 +109,13 @@ public class HttpServer {
             return;
         }
 
-        byte[] resource = staticFileService.read(path);
-        if (resource != null) {
-            writeResponse(out, 200, StaticFileService.contentTypeFor(path), resource);
-            return;
+        String resolvedStaticPath = staticFileService.resolvePath(path);
+        if (resolvedStaticPath != null) {
+            byte[] resource = staticFileService.read(path);
+            if (resource != null) {
+                writeResponse(out, 200, StaticFileService.contentTypeFor(resolvedStaticPath), resource);
+                return;
+            }
         }
 
         writeResponse(out, 404, "text/plain; charset=UTF-8", "404 Not Found".getBytes(StandardCharsets.UTF_8));

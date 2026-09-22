@@ -60,6 +60,17 @@ public class StaticFileService {
     }
 
     /**
+     * Resolves a request path to the relative resource name that will
+     * actually be read (defaulting "/" to "index.html"), or {@code null}
+     * if the path attempts to escape the configured folder. Callers use
+     * this to compute the Content-Type from the *resolved* name — using
+     * the raw request path ("/") would never match a file extension.
+     */
+    public String resolvePath(String requestPath) {
+        return normalize(requestPath);
+    }
+
+    /**
      * Defaults "/" to "index.html" and resolves "." / ".." segments on
      * a stack so a traversal attempt can never resolve outside the
      * configured folder. The caller is expected to have already
