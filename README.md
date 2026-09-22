@@ -7,12 +7,6 @@ endpoints through **lambda functions**, without ever touching the
 server's connection loop. The same source code runs unmodified on a
 developer machine and on a cloud instance.
 
-> Status: framework, example application, and local verification are
-> complete. The **Cloud deployment**, **Public deployment URL** and
-> **Evidence** sections below contain the exact steps to follow and are
-> marked `TODO` where only you — with access to the AWS account — can
-> fill in the real values and screenshots.
-
 ## Table of contents
 
 - [Project description](#project-description)
@@ -417,31 +411,127 @@ ENTRYPOINT ["java", "-jar", "app.jar"]
 
 ## Public deployment URL
 
-`TODO — fill in after deploying`: `http://<instance-public-ip-or-dns>:<port>/`
+`http://34.230.35.33:8080/`
+
+This EC2 instance does not have an Elastic IP attached, so this address
+was only guaranteed to be live for the duration of the deployment
+window captured in [Evidence](#evidence) below. Once the instance is
+stopped or terminated, this address stops resolving — the screenshots
+below are the record of it having worked.
+
+### Example URLs
+
+Static resources:
+
+- `http://34.230.35.33:8080/` (→ `index.html`)
+- `http://34.230.35.33:8080/app.js`
+- `http://34.230.35.33:8080/styles.css`
+- `http://34.230.35.33:8080/images/logo.png`
+
+REST endpoints:
+
+- `http://34.230.35.33:8080/hello?name=Cloud`
+- `http://34.230.35.33:8080/pi`
+- `http://34.230.35.33:8080/date`
+
+The same paths work against `http://localhost:8080/...` when running
+the jar locally.
 
 ## Evidence
 
-`TODO — capture these once the instance above is running`, and paste
-the screenshots/output directly into this section:
+All screenshots below were captured against the actual EC2 instance at
+`34.230.35.33:8080` (Amazon Linux 2023, `t3.micro`), following the
+[Cloud deployment](#cloud-deployment-aws) procedure step by step.
 
-- [ ] Browser screenshot of the deployed home page (`/`).
-- [ ] One static resource served from the cloud (e.g. `/images/logo.png`
-      loading in the browser, or `curl -i http://<url>/images/logo.png`
-      showing `200`/`image/png`).
-- [ ] At least two REST endpoint responses from the cloud instance
-      (e.g. `curl -i "http://<url>/hello?name=Cloud"` and
-      `curl -i http://<url>/pi`).
-- [ ] Evidence of the configured environment variables **without
-      exposing secrets** — e.g. `systemctl show lab06-webframework -p Environment`
-      or the relevant lines of the systemd unit file, not a raw
-      `.env`/credentials dump.
-- [ ] `/shutdown` working locally in development
-      (`APP_ENV=development java -jar target/lab06-webframework.jar`,
-      then `curl -i http://localhost:8080/shutdown` → 200, followed by
-      a failed connection attempt).
-- [ ] `/shutdown` returning 404 against the **public** cloud URL
-      (`curl -i http://<url>/shutdown` → 404, proving `APP_ENV=production`
-      is in effect).
+### Deployment process
+
+| Step | Evidence |
+|---|---|
+| 6 — Java 17 runtime installed on the instance | <img width="2518" height="1148" alt="java-17-amazon-corretto installed on the instance" src="https://github.com/user-attachments/assets/3f46ce9e-2565-497c-a793-c2ace199e3d8" /> |
+| 5 — SSH connection established from the local machine | <img width="2165" height="282" alt="SSH connection from PowerShell into the EC2 instance" src="https://github.com/user-attachments/assets/27fb24f5-8311-4824-95c5-baf482c48481" /> |
+| 8 — Jar transferred via `scp` | <img width="2147" height="324" alt="scp transferring lab06-webframework.jar to the instance" src="https://github.com/user-attachments/assets/b82e3005-7565-40bd-a88f-d78054e57d0b" /> |
+| 8 — Jar confirmed present on the instance | <img width="817" height="147" alt="ls -la confirming the jar arrived on the instance" src="https://github.com/user-attachments/assets/ab620017-a584-4f23-8118-1b4b4133a742" /> |
+| 9 — systemd service installed and active | <img width="1323" height="308" alt="systemctl status showing the service active and running" src="https://github.com/user-attachments/assets/f862faf2-870d-49ff-b386-862f5bd9d8d9" /> |
+| 10 — Verified locally on the instance (`curl localhost:8080`) | <img width="943" height="309" alt="curl against localhost from inside the instance" src="https://github.com/user-attachments/assets/a1b433d1-c237-4c7e-9971-e89fe4fa1cbc" /> |
+| Bug fix mid-deployment: the root path (`/`) was initially served with `Content-Type: application/octet-stream`, so browsers downloaded `index.html` instead of rendering it. Fixed in `StaticFileService`/`HttpServer` to compute the content type from the *resolved* file name (`index.html`), not the raw `/` request path — then the jar was rebuilt, re-uploaded, and the service restarted. | <img width="2156" height="359" alt="Re-uploading the fixed jar and restarting the systemd service" src="https://github.com/user-attachments/assets/e841899b-ee49-4429-acd9-547342baf532" /> |
+
+### Required functional evidence
+
+**Home page served from the public EC2 address** (`GET /`):
+
+<img width="1758" height="1278" alt="Home page rendered correctly from the public EC2 address" src="https://github.com/user-attachments/assets/d107a16f-caca-430c-9759-7811fede37ed" />
+
+**Static resource served from the cloud** (`GET /images/logo.png`):
+
+<img width="2020" height="1058" alt="Static image served from the cloud instance" src="https://github.com/user-attachments/assets/d57fbd67-24aa-4690-8ab1-66c6f34ce8da" />
+
+**At least two REST endpoint responses** (`GET /hello?name=Cloud`, `GET /pi`):
+
+<img width="2072" height="724" alt="Two lambda-based GET endpoints responding from the cloud instance" src="https://github.com/user-attachments/assets/24acb7da-790d-45c9-9fbc-97447948329c" />
+
+**Configured environment variables, without exposing secrets** (`systemctl show lab06-webframework -p Environment`):
+
+<img width="701" height="67" alt="PORT, APP_ENV and GREETING_PREFIX shown via systemctl, no secrets involved" src="https://github.com/user-attachments/assets/36e6c29d-2b06-4007-a478-ef61847b5a94" />
+
+**`/shutdown` working locally in development.** No separate screenshot was
+captured for this one; the manual verification below was run directly
+against the packaged jar on the developer machine during this lab
+(`APP_ENV=development`, default `PORT=8080`):
+
+```
+$ curl -i http://localhost:8080/shutdown
+HTTP/1.1 200 OK
+...
+Server will stop after this response.
+
+# server log:
+Server listening on port 8080
+Server stopped gracefully.
+
+$ curl -i http://localhost:8080/pi
+curl: (7) Failed to connect to localhost port 8080: Connection refused
+```
+
+**`/shutdown` blocked in the public production deployment** (`APP_ENV=production` → `404 Not Found`):
+
+<img width="2001" height="85" alt="GET /shutdown returning 404 against the public production URL" src="https://github.com/user-attachments/assets/988a0b17-7ec6-4c8f-8f06-ddd77305e53e" />
+
+### Cleanup
+
+**Instance stopped** (`sudo systemctl stop lab06-webframework`, then EC2 → Stop instance):
+
+<img width="673" height="45" alt="Instance stop confirmation" src="https://github.com/user-attachments/assets/472d512d-fb4f-4b44-80b2-7a33ec8988f6" />
+
+**Instance termination and security group deletion were not performed
+for this specific deployment.** Per guidance confirmed with the course
+staff, terminating the instance is a cost-control recommendation
+rather than a strict requirement — stopping it (evidence above) is
+sufficient to avoid ongoing compute charges. The instance and its
+security group are left stopped/intact so the deployment can be
+re-verified if needed; see below for the cost implications of this
+choice.
+
+#### Will a stopped-but-not-terminated instance keep charging me?
+
+- **Compute (EC2 instance-hours):** no charge while the instance is
+  `stopped` — billing for the instance type only applies while it is
+  `running`.
+- **EBS root volume (8 GiB gp3):** stopping does not delete the volume,
+  so it keeps existing and is technically billable — but a single 8 GiB
+  volume sits well inside the AWS Free Tier's 30 GB-month EBS
+  allowance, so in practice this generates $0 as long as the account
+  stays within that tier.
+- **Public IPv4 address:** this instance has no Elastic IP attached (see
+  [Public deployment URL](#public-deployment-url)), and AWS releases the
+  auto-assigned public IP the moment an instance stops — so there is no
+  address to be billed for while it's stopped either.
+- **Security group:** never billed, in any state.
+
+Net effect: leaving this instance stopped (rather than terminated)
+costs effectively nothing for a short-to-moderate period on a Free
+Tier account. It is worth terminating eventually to avoid the small
+ongoing EBS cost once outside the Free Tier window, and to keep the
+AWS account tidy — but it is not an active drain while stopped.
 
 ## Known limitations
 
@@ -458,20 +548,3 @@ the screenshots/output directly into this section:
 ## Author
 
 Author: Joshua (student, TDSE course).
-
-Evidences (pcitures)
-java install: <img width="2518" height="1148" alt="image" src="https://github.com/user-attachments/assets/3f46ce9e-2565-497c-a793-c2ace199e3d8" />
-pasar el .jar: <img width="2147" height="324" alt="image" src="https://github.com/user-attachments/assets/b82e3005-7565-40bd-a88f-d78054e57d0b" />
-prueba de que el archivo .jar llego a la instancia: <img width="817" height="147" alt="image" src="https://github.com/user-attachments/assets/ab620017-a584-4f23-8118-1b4b4133a742" />
-entrando a la instancia desde powershell: <img width="2165" height="282" alt="image" src="https://github.com/user-attachments/assets/27fb24f5-8311-4824-95c5-baf482c48481" />
-instalacion y activacion del servicio: <img width="1323" height="308" alt="image" src="https://github.com/user-attachments/assets/f862faf2-870d-49ff-b386-862f5bd9d8d9" />
-verificacion en local de la instancia: <img width="943" height="309" alt="image" src="https://github.com/user-attachments/assets/a1b433d1-c237-4c7e-9971-e89fe4fa1cbc" />
-actualizacion del nuev archiv .jar y reactivacion del servicio debido a una falla con la URL que no reconocia la pagina: <img width="2156" height="359" alt="image" src="https://github.com/user-attachments/assets/e841899b-ee49-4429-acd9-547342baf532" />
-prueba pagina funcionando: <img width="1758" height="1278" alt="image" src="https://github.com/user-attachments/assets/d107a16f-caca-430c-9759-7811fede37ed" />
-prueba recurso estatico: <img width="2020" height="1058" alt="image" src="https://github.com/user-attachments/assets/d57fbd67-24aa-4690-8ab1-66c6f34ce8da" />
-prueba endpoints REST: <img width="2072" height="724" alt="image" src="https://github.com/user-attachments/assets/24acb7da-790d-45c9-9fbc-97447948329c" />
-prueba shutdown bloqueado: <img width="2001" height="85" alt="image" src="https://github.com/user-attachments/assets/988a0b17-7ec6-4c8f-8f06-ddd77305e53e" />
-evidencia variables de entorno sin exponer secretos: <img width="701" height="67" alt="image" src="https://github.com/user-attachments/assets/36e6c29d-2b06-4007-a478-ef61847b5a94" />
-detenemos la instancia: <img width="673" height="45" alt="image" src="https://github.com/user-attachments/assets/472d512d-fb4f-4b44-80b2-7a33ec8988f6" />
-eliminar instancia: <img width="835" height="453" alt="image" src="https://github.com/user-attachments/assets/fd56ff1a-1ed9-4ed0-929b-f1fb616fa75c" />
-eliminar security group: <img width="869" height="198" alt="image" src="https://github.com/user-attachments/assets/b1c20511-bf30-4c39-9710-3f9a525d4e8e" />
