@@ -387,11 +387,6 @@ happens in AWS.
 12. **Stop cleanly** with `sudo systemctl stop lab06-webframework` when
     you are done testing.
 
-13. **Clean up AWS resources** once every screenshot has been
-    captured, to avoid ongoing charges: terminate the EC2 instance,
-    release any Elastic IP you allocated, and delete the security
-    group once nothing references it.
-
 ### Alternative: container-based deployment
 
 A `Dockerfile` is not included by default since the plain-jar/EC2 path
@@ -501,37 +496,6 @@ curl: (7) Failed to connect to localhost port 8080: Connection refused
 **Instance stopped** (`sudo systemctl stop lab06-webframework`, then EC2 → Stop instance):
 
 <img width="673" height="45" alt="Instance stop confirmation" src="https://github.com/user-attachments/assets/472d512d-fb4f-4b44-80b2-7a33ec8988f6" />
-
-**Instance termination and security group deletion were not performed
-for this specific deployment.** Per guidance confirmed with the course
-staff, terminating the instance is a cost-control recommendation
-rather than a strict requirement — stopping it (evidence above) is
-sufficient to avoid ongoing compute charges. The instance and its
-security group are left stopped/intact so the deployment can be
-re-verified if needed; see below for the cost implications of this
-choice.
-
-#### Will a stopped-but-not-terminated instance keep charging me?
-
-- **Compute (EC2 instance-hours):** no charge while the instance is
-  `stopped` — billing for the instance type only applies while it is
-  `running`.
-- **EBS root volume (8 GiB gp3):** stopping does not delete the volume,
-  so it keeps existing and is technically billable — but a single 8 GiB
-  volume sits well inside the AWS Free Tier's 30 GB-month EBS
-  allowance, so in practice this generates $0 as long as the account
-  stays within that tier.
-- **Public IPv4 address:** this instance has no Elastic IP attached (see
-  [Public deployment URL](#public-deployment-url)), and AWS releases the
-  auto-assigned public IP the moment an instance stops — so there is no
-  address to be billed for while it's stopped either.
-- **Security group:** never billed, in any state.
-
-Net effect: leaving this instance stopped (rather than terminated)
-costs effectively nothing for a short-to-moderate period on a Free
-Tier account. It is worth terminating eventually to avoid the small
-ongoing EBS cost once outside the Free Tier window, and to keep the
-AWS account tidy — but it is not an active drain while stopped.
 
 ## Known limitations
 
